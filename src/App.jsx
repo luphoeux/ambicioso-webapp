@@ -244,31 +244,46 @@ function App() {
               <div style={{ backgroundColor: 'rgba(255, 255, 255, 0.05)', padding: '0.75rem', borderRadius: '8px', fontSize: '0.9rem', color: '#a1a1aa', textAlign: 'center', marginBottom: '1.5rem' }}>
                 {(() => {
                   const currentPlayer = players.find(p => p.id === activeCell.playerId);
-                  // Usar los puntajes de los turnos 1 al 4 para ver cuánto le falta
                   const baseTotal = currentPlayer.scores.slice(0, 4).reduce((sum, s) => sum + (s || 0), 0);
+                  const currentRealTimeTotal = baseTotal + tempScore;
+
                   const otherTotals = players.filter(p => p.id !== activeCell.playerId).map(getPlayerTotal);
                   const uniqueOtherTotals = [...new Set(otherTotals)].sort((a,b) => b - a);
                   const top1 = uniqueOtherTotals[0] || 0;
                   const top2 = uniqueOtherTotals[1] || 0;
                   
-                  const diff1 = top1 - baseTotal;
-                  const diff2 = top2 - baseTotal;
+                  const neededToWin1st = top1 - currentRealTimeTotal + 50;
+                  const neededToTie1st = top1 - currentRealTimeTotal;
+
+                  const neededToWin2nd = top2 - currentRealTimeTotal + 50;
+                  const neededToTie2nd = top2 - currentRealTimeTotal;
+                  
+                  const txt = [];
+                  if (neededToWin1st > 0) {
+                    if (neededToTie1st === 0) {
+                      txt.push(<div key="1">Empatando 1er lugar 👑 (Suma 50 para ganar)</div>);
+                    } else {
+                      txt.push(<div key="1">Para ganar 1er lugar faltan: <strong style={{color: 'var(--primary-color)'}}>{neededToWin1st} pts</strong> 👑</div>);
+                    }
+                    
+                    if (players.length > 2) {
+                      if (neededToWin2nd > 0) {
+                        if (neededToTie2nd === 0) {
+                          txt.push(<div key="2">Empatando 2do lugar <span className="silver-crown">👑</span> (Suma 50 para ganar)</div>);
+                        } else {
+                          txt.push(<div key="2">Para ganar 2do lugar faltan: <strong style={{color: 'white'}}>{neededToWin2nd} pts</strong> <span className="silver-crown">👑</span></div>);
+                        }
+                      } else {
+                        txt.push(<div key="2">¡Asegurando el 2do lugar! <span className="silver-crown">👑</span></div>);
+                      }
+                    }
+                  } else {
+                    txt.push(<div key="1">¡Asegurando el <strong style={{color: 'var(--primary-color)'}}>1er lugar</strong>! 👑</div>);
+                  }
                   
                   return (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-                      {diff1 > 0 ? (
-                        <>
-                          <div>Para 1er lugar necesitas: <strong style={{color: 'var(--primary-color)'}}>{diff1} pts</strong> 👑</div>
-                          {players.length > 2 && diff2 > 0 && (
-                            <div>Para 2do lugar necesitas: <strong style={{color: 'white'}}>{diff2} pts</strong> <span className="silver-crown">👑</span></div>
-                          )}
-                          {players.length > 2 && diff2 <= 0 && (
-                            <div>¡Actualmente aseguras el <strong style={{color: 'white'}}>2do lugar</strong>! <span className="silver-crown">👑</span></div>
-                          )}
-                        </>
-                      ) : (
-                        <div>¡Actualmente aseguras el <strong style={{color: 'var(--primary-color)'}}>1er lugar</strong>! 👑</div>
-                      )}
+                      {txt}
                     </div>
                   );
                 })()}
