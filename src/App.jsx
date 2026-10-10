@@ -143,8 +143,11 @@ function App() {
     setShowHistory(true);
   };
 
-  // Determinar quién tiene la corona 👑
-  const maxScore = players.length > 0 ? Math.max(...players.map(getPlayerTotal)) : 0;
+  // Determinar primer y segundo lugar 👑
+  const allTotals = players.map(getPlayerTotal);
+  const uniqueSortedTotals = [...new Set(allTotals)].sort((a, b) => b - a);
+  const maxScore = uniqueSortedTotals[0] || 0;
+  const secondMaxScore = uniqueSortedTotals[1] || 0;
   const allCompleted5 = players.length > 0 && players.every(p => p.scores.every(s => s !== null));
 
   return (
@@ -179,14 +182,19 @@ function App() {
       <div className="players-list">
         {players.map((player) => {
           const total = getPlayerTotal(player);
-          const isWinning = total === maxScore && maxScore > 0;
+          const is1st = total === maxScore && maxScore > 0;
+          const is2nd = total === secondMaxScore && secondMaxScore > 0;
           return (
             <div key={player.id} className="player-card animate-slide-up">
               <div className="player-header">
                 <span className="player-name">
-                  {player.name} {isWinning && <span title="Ganando">👑</span>}
+                  {player.name} 
+                  {is1st && <span title="1er Lugar" style={{marginLeft: '4px'}}>👑</span>}
+                  {is2nd && <span title="2do Lugar" className="silver-crown" style={{marginLeft: '4px'}}>👑</span>}
                 </span>
-                <span className="player-total">{total} pts</span>
+                <span className="player-total" style={{ color: is1st ? 'var(--primary-color)' : (is2nd ? '#a1a1aa' : 'inherit') }}>
+                  {total} pts
+                </span>
               </div>
               <div className="scores-grid">
                 {player.scores.map((score, idx) => (
@@ -232,6 +240,41 @@ function App() {
               <span className="sheet-title">{activeCell.name.toUpperCase()} - TURNO {activeCell.turnIndex + 1}</span>
             </div>
             
+            {activeCell.turnIndex === 4 && players.length > 1 && (
+              <div style={{ backgroundColor: 'rgba(255, 255, 255, 0.05)', padding: '0.75rem', borderRadius: '8px', fontSize: '0.9rem', color: '#a1a1aa', textAlign: 'center', marginBottom: '1.5rem' }}>
+                {(() => {
+                  const currentPlayer = players.find(p => p.id === activeCell.playerId);
+                  // Usar los puntajes de los turnos 1 al 4 para ver cuánto le falta
+                  const baseTotal = currentPlayer.scores.slice(0, 4).reduce((sum, s) => sum + (s || 0), 0);
+                  const otherTotals = players.filter(p => p.id !== activeCell.playerId).map(getPlayerTotal);
+                  const uniqueOtherTotals = [...new Set(otherTotals)].sort((a,b) => b - a);
+                  const top1 = uniqueOtherTotals[0] || 0;
+                  const top2 = uniqueOtherTotals[1] || 0;
+                  
+                  const diff1 = top1 - baseTotal;
+                  const diff2 = top2 - baseTotal;
+                  
+                  return (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                      {diff1 > 0 ? (
+                        <>
+                          <div>Para 1er lugar necesitas: <strong style={{color: 'var(--primary-color)'}}>{diff1} pts</strong> 👑</div>
+                          {players.length > 2 && diff2 > 0 && (
+                            <div>Para 2do lugar necesitas: <strong style={{color: 'white'}}>{diff2} pts</strong> <span className="silver-crown">👑</span></div>
+                          )}
+                          {players.length > 2 && diff2 <= 0 && (
+                            <div>¡Actualmente aseguras el <strong style={{color: 'white'}}>2do lugar</strong>! <span className="silver-crown">👑</span></div>
+                          )}
+                        </>
+                      ) : (
+                        <div>¡Actualmente aseguras el <strong style={{color: 'var(--primary-color)'}}>1er lugar</strong>! 👑</div>
+                      )}
+                    </div>
+                  );
+                })()}
+              </div>
+            )}
+
             <div className="temp-score-display">
               {tempScore}
             </div>
@@ -276,13 +319,16 @@ function App() {
             <div style={{ marginBottom: '2rem' }}>
               {players.map((p, idx) => {
                 const total = getPlayerTotal(p);
-                const isWinning = total === maxScore && maxScore > 0;
+                const is1st = total === maxScore && maxScore > 0;
+                const is2nd = total === secondMaxScore && secondMaxScore > 0;
                 return (
                   <div key={p.id} className="summary-item">
-                    <span style={{ fontWeight: isWinning ? 900 : 700, color: isWinning ? 'var(--primary-color)' : 'white' }}>
-                      {idx + 1}. {p.name} {isWinning ? '👑' : ''}
+                    <span style={{ fontWeight: is1st ? 900 : 700, color: is1st ? 'var(--primary-color)' : (is2nd ? '#d4d4d8' : 'white') }}>
+                      {idx + 1}. {p.name} 
+                      {is1st && <span style={{marginLeft: '4px'}}>👑</span>}
+                      {is2nd && <span className="silver-crown" style={{marginLeft: '4px'}}>👑</span>}
                     </span>
-                    <span style={{ fontWeight: 900, color: isWinning ? 'var(--primary-color)' : 'white' }}>
+                    <span style={{ fontWeight: 900, color: is1st ? 'var(--primary-color)' : (is2nd ? '#d4d4d8' : 'white') }}>
                       {total}
                     </span>
                   </div>
@@ -327,7 +373,11 @@ function App() {
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                 {history.map((game, index) => {
-                  const maxHistoryScore = Math.max(...game.players.map(gp => gp.scores.reduce((sum, s) => sum + (s || 0), 0)));
+                  const gpTotals = game.players.map(gp => gp.scores.reduce((sum, s) => sum + (s || 0), 0));
+                  const gpUnique = [...new Set(gpTotals)].sort((a,b) => b - a);
+                  const maxHistoryScore = gpUnique[0] || 0;
+                  const secondHistoryScore = gpUnique[1] || 0;
+                  
                   return (
                     <div key={game.id} style={{ backgroundColor: 'var(--surface-color-light)', padding: '1rem', borderRadius: '12px' }}>
                       <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.75rem' }}>
@@ -335,13 +385,16 @@ function App() {
                       </div>
                       {game.players.map((p, idx) => {
                         const pTotal = p.scores.reduce((sum, s) => sum + (s || 0), 0);
-                        const isHistoryWinning = pTotal === maxHistoryScore && maxHistoryScore > 0;
+                        const is1st = pTotal === maxHistoryScore && maxHistoryScore > 0;
+                        const is2nd = pTotal === secondHistoryScore && secondHistoryScore > 0;
                         return (
                           <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
-                            <span style={{ fontWeight: isHistoryWinning ? 900 : 400, color: isHistoryWinning ? 'var(--primary-color)' : 'white' }}>
-                              {idx + 1}. {p.name} {isHistoryWinning ? '👑' : ''}
+                            <span style={{ fontWeight: is1st ? 900 : (is2nd ? 700 : 400), color: is1st ? 'var(--primary-color)' : (is2nd ? '#d4d4d8' : 'white') }}>
+                              {idx + 1}. {p.name} 
+                              {is1st && <span style={{marginLeft: '4px'}}>👑</span>}
+                              {is2nd && <span className="silver-crown" style={{marginLeft: '4px'}}>👑</span>}
                             </span>
-                            <span style={{ fontWeight: 700 }}>{pTotal} pts</span>
+                            <span style={{ fontWeight: 700, color: is1st ? 'var(--primary-color)' : (is2nd ? '#d4d4d8' : 'inherit') }}>{pTotal} pts</span>
                           </div>
                         );
                       })}

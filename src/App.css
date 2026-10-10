@@ -207,3 +207,9 @@
 .summary-item:last-child {
   border-bottom: none;
 }
+
+.silver-crown {
+  filter: grayscale(100%) brightness(1.2);
+  display: inline-block;
+}
+
