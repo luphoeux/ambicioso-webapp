@@ -1,9 +1,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
 
 :root {
-  --bg-color: #020617; 
-  --surface-color: #0F172A; 
-  --surface-color-light: #1E293B; 
+  --bg-color: #000000; /* Negro puro para apagar píxeles en OLED */
+  --surface-color: #111111; /* Gris súper oscuro para las tarjetas */
+  --surface-color-light: #222222; /* Gris oscuro para botones y celdas */
   --primary-color: #22C55E; 
   --primary-hover: #16A34A;
   --text-primary: #FFFFFF;
