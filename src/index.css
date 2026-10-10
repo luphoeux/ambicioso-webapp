@@ -1,0 +1,86 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+
+:root {
+  --bg-color: #020617; 
+  --surface-color: #0F172A; 
+  --surface-color-light: #1E293B; 
+  --primary-color: #22C55E; 
+  --primary-hover: #16A34A;
+  --text-primary: #FFFFFF;
+  --text-secondary: #94A3B8;
+  --border-color: rgba(255, 255, 255, 0.12);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  user-select: none; /* Make it feel like an app */
+}
+
+#root {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 1rem;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Base resets */
+button, input {
+  font-family: 'Inter', sans-serif;
+  border: none;
+  background: none;
+  outline: none;
+}
+button {
+  cursor: pointer;
+  transition: opacity 0.1s ease, transform 0.1s ease;
+}
+button:active {
+  opacity: 0.8;
+  transform: scale(0.96);
+}
+
+/* Animations */
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.animate-fade-in { animation: fadeIn 0.2s ease-out forwards; }
+.animate-slide-up { animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.animate-pulse { animation: pulse 1s ease infinite; }
+
+/* Custom Scrollbar for list */
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background-color: var(--border-color);
+  border-radius: 4px;
+}
